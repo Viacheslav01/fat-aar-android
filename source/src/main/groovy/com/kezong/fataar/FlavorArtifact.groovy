@@ -58,8 +58,7 @@ class FlavorArtifact {
         } else { // try included builds
             ResolvedDependencyResult resolvedResult = configuration.incoming.resolutionResult.allDependencies.find { result ->
                 if (result instanceof ResolvedDependencyResult && result.selected.selectionReason.compositeSubstitution) {
-                    return result.requested.group == unResolvedArtifact.moduleGroup
-                            && result.requested.module == unResolvedArtifact.moduleName
+                    return result.requested.group == unResolvedArtifact.moduleGroup && result.requested.module == unResolvedArtifact.moduleName
                 }
                 return false
             }
