@@ -1,7 +1,6 @@
 package com.kezong.fataar
 
 import com.android.build.gradle.api.LibraryVariant
-import com.android.build.gradle.internal.api.DefaultAndroidSourceSet
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -20,7 +19,6 @@ import org.gradle.api.tasks.bundling.Zip
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.stream.Collectors
 
 /**
  * Core
@@ -186,13 +184,12 @@ class VariantProcessor {
     }
 
     private void processRClasses(RClassesTransform transform, TaskProvider<Task> bundleTask) {
-        if (FatUtils.compareVersion(VersionAdapter.AGPVersion, "8.0.0") >= 0) return
         TaskProvider reBundleTask = configureReBundleAarTask(bundleTask)
-        TaskProvider transformTask = mProject.tasks.named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
-        transformTask.configure {
-            it.dependsOn(mMergeClassTask)
-        }
-        if (mProject.fataar.transformR) {
+        if (mProject.fataar.transformR && !FatUtils.isAGPVersion8AndAbove()) {
+            TaskProvider transformTask = mProject.tasks.named("transformClassesWith${transform.name.capitalize()}For${mVariant.name.capitalize()}")
+            transformTask.configure {
+                it.dependsOn(mMergeClassTask)
+            }
             transformRClasses(transform, transformTask, bundleTask, reBundleTask)
         } else {
             generateRClasses(bundleTask, reBundleTask)
@@ -456,8 +453,11 @@ class VariantProcessor {
                     .withPathSensitivity(PathSensitivity.RELATIVE)
             inputs.files(mJarFiles).withPathSensitivity(PathSensitivity.RELATIVE)
         }
-        mProject.tasks.named("transform${mVariant.name.capitalize()}ClassesWithAsm").configure {
-            dependsOn(mMergeClassTask)
+        // Asm tasks enabled from AGP 8 version
+        if(FatUtils.isAGPVersion8AndAbove()){
+            mProject.tasks.named("transform${mVariant.name.capitalize()}ClassesWithAsm").configure {
+                dependsOn(mMergeClassTask)
+            }
         }
         extractAnnotationsTask.configure {
             mustRunAfter(mMergeClassTask)
