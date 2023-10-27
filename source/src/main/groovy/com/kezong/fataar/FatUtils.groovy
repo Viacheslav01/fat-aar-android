@@ -107,6 +107,13 @@ class FatUtils {
         }
     }
 
+    /**
+     * @return true if current AGP version is at least "8.0.0" and false otherwise
+     */
+    static Boolean isAGPVersion8AndAbove(){
+        compareVersion(VersionAdapter.AGPVersion, "8.0.0") >= 0
+    }
+
     static String formatDataSize(long size) {
         String result
         if (size < 1024) {
